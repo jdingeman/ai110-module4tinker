@@ -8,6 +8,7 @@ Core DocuBot class responsible for:
 """
 
 import os
+import re
 import glob
 
 class DocuBot:
@@ -22,8 +23,15 @@ class DocuBot:
         # Load documents into memory
         self.documents = self.load_documents()  # List of (filename, text)
 
-        # Build a retrieval index (implemented in Phase 1)
-        self.index = self.build_index(self.documents)
+        # Split documents into heading-based chunks
+        self.chunks = [
+            chunk
+            for filename, text in self.documents
+            for chunk in self.chunk_document(text, filename)
+        ]
+
+        # Build a retrieval index over chunks (implemented in Phase 1)
+        self.index = self.build_index(self.chunks)
 
     # -----------------------------------------------------------
     # Document Loading
@@ -45,6 +53,15 @@ class DocuBot:
         return docs
 
     # -----------------------------------------------------------
+    # Chunking
+    # -----------------------------------------------------------
+
+    def chunk_document(self, text, filename):
+        """Split markdown text on headings (# / ## / ###) into sections."""
+        sections = re.split(r'(?=^#{1,3} )', text, flags=re.MULTILINE)
+        return [(filename, s.strip()) for s in sections if s.strip()]
+
+    # -----------------------------------------------------------
     # Index Construction (Phase 1)
     # -----------------------------------------------------------
 
@@ -64,7 +81,14 @@ class DocuBot:
         ignore punctuation if needed.
         """
         index = {}
-        # TODO: implement simple indexing
+        for filename, text in documents:
+            for token in text.lower().split():
+                token = token.strip(".,!?;:\"'()[]{}")
+                if token:
+                    if token not in index:
+                        index[token] = []
+                    if filename not in index[token]:
+                        index[token].append(filename)
         return index
 
     # -----------------------------------------------------------
@@ -81,19 +105,35 @@ class DocuBot:
         - Count how many appear in the text
         - Return the count as the score
         """
-        # TODO: implement scoring
-        return 0
+        text_words = set(text.lower().split())
+        query_words = query.lower().split()
+        return sum(1 for word in query_words if word in text_words)
 
-    def retrieve(self, query, top_k=3):
+    def retrieve(self, query, top_k=3, min_score=2):
         """
         TODO (Phase 1):
         Use the index and scoring function to select top_k relevant document snippets.
 
         Return a list of (filename, text) sorted by score descending.
+        Only returns chunks whose score meets min_score, so that low-evidence
+        results are excluded rather than passed to the answering step.
         """
+        # Find candidate documents via the index
+        candidates = set()
+        for word in query.lower().split():
+            for filename in self.index.get(word, []):
+                candidates.add(filename)
+
+        # Score each candidate chunk and filter by min_score
         results = []
-        # TODO: implement retrieval logic
-        return results[:top_k]
+        for filename, text in self.chunks:
+            if filename in candidates:
+                score = self.score_document(query, text)
+                if score >= min_score:
+                    results.append((filename, text, score))
+
+        results.sort(key=lambda x: x[2], reverse=True)
+        return [(filename, text) for filename, text, _ in results[:top_k]]
 
     # -----------------------------------------------------------
     # Answering Modes

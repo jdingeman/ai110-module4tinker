@@ -44,8 +44,8 @@ Start the program:
 
 Choose a mode:
 
-- **1**: Naive LLM (Gemini reads the full docs)  
-- **2**: Retrieval only (no LLM)  
+- **1**: Naive LLM (Gemini reads the full docs)
+- **2**: Retrieval only (no LLM)
 - **3**: RAG (retrieval + Gemini)
 
 You can use built in sample queries or type your own.
@@ -80,3 +80,14 @@ You will primarily work in:
 - Python 3.9+
 - A Gemini API key for LLM features (only needed for modes 1 and 3)
 - No database, no server setup, no external services besides LLM calls
+
+# TF Submission: Justin Dingeman
+
+1. The core concept students needed to understand
+   > Students should understand the difference between LLM, retrieval and RAG.
+2. Where students are most likely to struggle.
+   > Students may struggle with trying to understand how the LLM and retrieval work together when it comes time to combine them. The instructions don't go super in depth in exploring how they work together, more so just how they work independently. They may also struggle with using Gemini because the API keys expire extremely quickly, and will result in errors in the application causing it to crash.
+3. Where AI was helpful vs. misleading
+   > It is very helpful in coming up with the implementations of the functions as well as explaining them line by line. It was misleading when it insisted that certain queries would be "unanswerable" even though the retrieval mode actually returned information based on bad queries.
+4. One way they would guide a student without giving the answer
+   > I would remind them that a computer and a human don't think the same way, so if they were lost in trying to implement the function for scoring or don't understand how a function is implemented, I'd ask them to step back and try to go line by line to see what they think is happening. Then I would ask them to verify with Copilot, being very specific in their prompt, asking for the information they specifically want to know.
